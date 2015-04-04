@@ -1,0 +1,57 @@
+body {
+	font-family: 'Roboto', sans-serif;
+	background-color: #313137;
+	color: #fafafa;
+}
+
+.main-container {
+	margin-top: 90px;
+}
+
+.title {
+	margin-top: 3rem;
+	margin-bottom: 0.2rem;
+}
+
+.value {
+	margin-top: 1rem;
+	margin-bottom: 1rem;
+}
+
+.spinner-red-only {
+	border-color: #31313A;
+}
+
+.alert-bar {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	margin: 0;
+	padding: 15px;
+}
+
+.started {
+	background-color: #252525;
+	opacity: .9;
+}
+
+.disconnected {
+	background-color: #b71c1c;
+	opacity: .9;
+	padding-bottom: 0;
+}
+
+.pull-left {
+	float: left;
+}
+
+
+.pull-right {
+	float: right;
+}
+
+.xsmall {
+	width: 25px;
+	height: 25px;
+}
