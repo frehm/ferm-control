@@ -29,7 +29,14 @@ function ViewModel() {
 
 	// Commands sent to raspberry pi
 	this.changeSetpoint = function (newSp) {
-		socket.emit('changesp', newSp);
+		
+		var test = self.setpoint() + 10;
+		
+		var cmd = {
+			key: 'SP',
+			value: test.toFixed(1).toString().replace('.', '')
+		};
+		socket.emit('cmd arduino', cmd);
 	};
 
 	// Connection state

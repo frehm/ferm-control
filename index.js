@@ -56,14 +56,20 @@ serialport.on('open', function () {
 io.on('connection', function (socket) {
 	socketCount += 1;
 	console.log('a user connected, total ' + socketCount);
-	
 
-	/*socket.on('getpv', function (options) {
-		io.emit('pv', {
-			timestamp: new Date(),
-			pv: Math.random() * 23 + 18
+	// Command to send to arduino
+	socket.on('cmd arduino', function (cmd) {
+
+		//TODO: Verify values in cmd
+		//TODO: Indicate that command is about to be sent, like isBusy = true
+		console.log('cmd arduino', cmd);
+		
+		serialport.write(cmd.key + cmd.value + '\n', function (err, result) {
+			console.log('serial err', err);
+			console.log('serial result', result);
 		});
-	});*/
+
+	});
 
 	socket.on('disconnect', function () {
 		socketCount -= 1;
