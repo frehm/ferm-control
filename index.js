@@ -55,7 +55,10 @@ serialport.on('open', function () {
 
 io.on('connection', function (socket) {
 	socketCount += 1;
-	console.log('a user connected, total ' + socketCount);
+	console.log('a user connected, total ' + socketCount + ', id ' + socket.id);
+
+	// Send current values to the user who just connected
+	io.to(socket.id).emit('values', cache);
 
 	// Command to send to arduino
 	socket.on('cmd arduino', function (cmd) {
@@ -64,16 +67,13 @@ io.on('connection', function (socket) {
 		//TODO: Indicate that command is about to be sent, like isBusy = true
 		console.log('cmd arduino', cmd);
 		
-		serialport.write(cmd.key + cmd.value + '\n', function (err, result) {
-			console.log('serial err', err);
-			console.log('serial result', result);
-		});
+		serialport.write(cmd.key + cmd.value + '\n');
 
 	});
 
 	socket.on('disconnect', function () {
 		socketCount -= 1;
-		console.log('user disconnected, total ' + socketCount);
+		console.log('user disconnected, total ' + socketCount + ', id ' + socket.id);
 	});
 });
 
