@@ -24,10 +24,10 @@ serialport.on('open', function () {
 	console.log('serial port open');
 
 	serialport.on('data', function (data) {
-
-		if (data === '!OK') {
+		
+		if (data.indexOf('!OK') === 0) {
 			console.log('Command successful');
-		} else if (data === '!ERR') {
+		} else if (data.indexOf('!ERR') === 0) {
 			console.log('Command failed')
 		} else {
 
