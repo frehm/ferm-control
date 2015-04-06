@@ -5,6 +5,7 @@ function ViewModel() {
 	this.testValue = ko.observable('inital value');
 	this.timestamp = ko.observable(new Date());
 	this.temperature = ko.observable(0);
+	this.setpoint = ko.observable(0);
 	this.output = ko.observable(0);
 	this.statusText = ko.observable('Fermentation started 3 days ago');
 	this.modeText = ko.observable('Started');
@@ -18,10 +19,12 @@ function ViewModel() {
 
 	
 	// Process values pushed from raspberry pi
-	socket.on('pv', function (data) {
+	socket.on('values', function (data) {
 		self.timestamp(data.timestamp);
 		self.temperature(data.pv);
-		self.output(data.mv);
+		self.setpoint(data.sp);
+		//self.output(data.mv);
+		console.log('new values', data);
 	});
 
 	// Commands sent to raspberry pi
