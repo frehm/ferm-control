@@ -78,6 +78,11 @@ serialport.on('open', function () {
 
 			var kvp = data.split(':');
 
+			// SP:20.00
+			// PV:21.10
+			// CO:100
+			// PID:5.00;10.00;20.00
+			// MODE:AUT | MODE:MAN
 			if (kvp.length === 2) {
 				var key = kvp[0].toLowerCase();
 				var value = kvp[1];
@@ -121,6 +126,17 @@ io.on('connection', function (socket) {
 		console.log('cmd arduino', cmd);
 
 		serialport.write(cmd.key + cmd.value + '\n');
+
+		if (batch.active) {
+			
+			client.writePoint('batch.' + batch.id + '.cmds', {
+				time: new Date(),
+				cmdKey: cmd.key,
+				cmdValue: cmd.value
+			}, function (err) {
+				console.log('Failed to write to influxdb', err);
+			});
+		}
 
 	});
 
