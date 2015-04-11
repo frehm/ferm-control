@@ -9,7 +9,7 @@ var io = require('socket.io')(http);
 var SerialPort = require('serialport');
 var serialport = new SerialPort.SerialPort('/dev/ttyACM0', {
 		parser: SerialPort.parsers.readline('\n')
-	});
+	}, false);
 
 var socketCount = 0;
 var init = false;
@@ -38,14 +38,15 @@ var batch = {
 // then open serial port
 // when port open, set values on arduino from batch and cache
 
-app.use(express.static('public'));
+serialport.open(function (error) {
 
-app.get('/', function (req, res) {
-	res.sendFile(__dirname + '/views/main.html');
-});
+	if (error) {
+		console.log('failed to open port!');
+		return;
+	}
 
-serialport.on('open', function () {
 	console.log('serial port open');
+
 	serialport.flush(function () {
 		console.log('flushed serial buffer');
 	});
@@ -128,7 +129,7 @@ io.on('connection', function (socket) {
 		serialport.write(cmd.key + cmd.value + '\n');
 
 		if (batch.active) {
-			
+
 			client.writePoint('batch.' + batch.id + '.cmds', {
 				time: new Date(),
 				cmdKey: cmd.key,
@@ -146,6 +147,12 @@ io.on('connection', function (socket) {
 	});
 });
 
+app.use(express.static('public'));
+
+app.get('/', function (req, res) {
+	res.sendFile(__dirname + '/views/main.html');
+});
+
 var server = http.listen(3000, function () {
 	var host = server.address().address;
 	var port = server.address().port;
@@ -153,14 +160,3 @@ var server = http.listen(3000, function () {
 	console.log('Started app at %s:%s', host, port);
 
 });
-
-/*setInterval(function () {
-	//console.log('socketCount ' + socketCount);
-	if (socketCount > 0) {
-		io.emit('pv', {
-			timestamp: new Date(),
-			pv: Math.random() * 23 + 18,
-			mv: Math.random() * 100
-		});
-	}
-}, 750);*/
