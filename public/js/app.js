@@ -1,4 +1,8 @@
+/* global ko, io */
+/* jshint devel: true */
 function ViewModel() {
+	'use strict';
+
 	var socket = io(),
 		self = this;
 
@@ -17,7 +21,7 @@ function ViewModel() {
 	// Command state
 	this.sending = ko.observable(false);
 
-	
+
 	// Process values pushed from raspberry pi
 	socket.on('values', function (data) {
 		self.timestamp(data.timestamp);
@@ -28,10 +32,10 @@ function ViewModel() {
 	});
 
 	// Commands sent to raspberry pi
-	this.changeSetpoint = function (newSp) {
-		
+	this.changeSetpoint = function () {
+
 		var test = self.setpoint() + 10;
-		
+
 		var cmd = {
 			key: 'SP',
 			value: test.toFixed(1).toString().replace('.', '')
@@ -70,7 +74,7 @@ function ViewModel() {
 		console.log('reconnecting', attempt);
 		self.reconnecting(true);
 	});
-	
+
 }
 
 ko.applyBindings(new ViewModel());

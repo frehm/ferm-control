@@ -1,3 +1,7 @@
+/* jshint node: true */
+'use strict';
+var influx = require('influx');
+var client = influx({ host: 'localhost', username: 'pi', password: 'ferm', database: 'ferm' });
 var express = require('express');
 var app = express();
 var http = require('http').Server(app);
@@ -8,11 +12,31 @@ var serialport = new SerialPort.SerialPort('/dev/ttyACM0', {
 	});
 
 var socketCount = 0;
+var init = false;
 var cache = {
 		timestamp: new Date(),
 		pv: 0,
-		sp: 0
+		sp: 0,
+		started: false
 	};
+
+var batch = {
+	id: 1,
+	description: 'Test batch',
+	startTime: new Date(),
+	active: false
+};
+
+// init batch,
+	// 'select batchNo/id, description, startTime, logActive,
+	//  pidActive from batch.info limit 1'
+
+// init cache,
+	// timestamp and pv -> 'select time, value from batch.{id}.pv limit 1'
+	// sp -> 'select value from batch.{id}.sp limit 1' (or default 0)
+
+// then open serial port
+// when port open, set values on arduino from batch and cache
 
 app.use(express.static('public'));
 
@@ -24,12 +48,30 @@ serialport.on('open', function () {
 	console.log('serial port open');
 
 	serialport.on('data', function (data) {
-		
-		if (data.indexOf('!OK') === 0) {
+
+		console.log('data', data);
+
+		// Arduino asks for setpoint
+		if (data.indexOf('?SP') === 0) {
+
+			serialport.write('SP' + cache.sp.toFixed(1).toString().replace('.', '') + '\n');
+
+		} else if (data.indexOf('?PID') === 0) {
+
+			serialport.write('PID5;10;20\n');
+
+		} else if (data.indexOf('?MODE') === 0) {
+
+			serialport.write('MODEA\n');
+
+		} else if (data.indexOf('!OK') === 0) {
 			console.log('Command successful');
 		} else if (data.indexOf('!ERR') === 0) {
-			console.log('Command failed')
-		} else {
+			console.log('Command failed');
+		} else if (data.indexOf('!INIT') === 0) {
+			init = true;
+		}
+		else {
 
 			var kvp = data.split(':');
 
@@ -38,17 +80,25 @@ serialport.on('open', function () {
 				var value = kvp[1];
 				var timestamp = new Date();
 
-				// Update cache 
+				// Update cache
 				cache[key] = +value;
 				cache.timestamp = timestamp;
 
-				// Save to influxdb
+				// Save to influxdb, if active
+				if (batch.active) {
+					client.writePoint('batch.' + batch.id + '.' + key, {
+						time: timestamp,
+						value: +value
+					}, function (err) {
+						console.log('Failed to write to influxdb', err);
+					});
+				}
 
 				// Push entire cache to sockets
 				if (socketCount > 0) {
 					io.emit('values', cache);
 				}
-			}	
+			}
 		}
 	});
 });
@@ -66,7 +116,7 @@ io.on('connection', function (socket) {
 		//TODO: Verify values in cmd
 		//TODO: Indicate that command is about to be sent, like isBusy = true
 		console.log('cmd arduino', cmd);
-		
+
 		serialport.write(cmd.key + cmd.value + '\n');
 
 	});
