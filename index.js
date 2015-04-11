@@ -16,7 +16,7 @@ var init = false;
 var cache = {
 		timestamp: new Date(),
 		pv: 0,
-		sp: 0,
+		sp: 19.5,
 		started: false
 	};
 
@@ -46,6 +46,9 @@ app.get('/', function (req, res) {
 
 serialport.on('open', function () {
 	console.log('serial port open');
+	serialport.flush(function () {
+		console.log('flushed serial buffer');
+	});
 
 	serialport.on('data', function (data) {
 
